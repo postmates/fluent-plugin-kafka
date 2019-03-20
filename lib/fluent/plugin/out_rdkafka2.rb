@@ -257,7 +257,7 @@ DESC
             next
           end
 
-          handlers << enqueue_with_retry(producer, topic, record_buf, message_key, partition)
+          handlers << enqueue_with_retry(producer, topic, record_buf, message_key, partition, time)
         }
         handlers.each { |handler|
           handler.wait(@rdkafka_delivery_handle_poll_timeout) if @rdkafka_delivery_handle_poll_timeout != 0
@@ -269,11 +269,11 @@ DESC
       raise e
     end
 
-    def enqueue_with_retry(producer, topic, record_buf, message_key, partition)
+    def enqueue_with_retry(producer, topic, record_buf, message_key, partition, time)
       attempt = 0
       loop do
         begin
-          return producer.produce(topic: topic, payload: record_buf, key: message_key, partition: partition)
+          return producer.produce(topic: topic, payload: record_buf, key: message_key, partition: partition, timestamp: time)
         rescue Exception => e
           if e.code == :queue_full
             if attempt <= @max_enqueue_retries
