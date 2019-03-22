@@ -271,9 +271,10 @@ DESC
 
     def enqueue_with_retry(producer, topic, record_buf, message_key, partition, time)
       attempt = 0
+      time_ms = 1000 * time.sec + time.nsec / 1_000_000
       loop do
         begin
-          return producer.produce(topic: topic, payload: record_buf, key: message_key, partition: partition, timestamp: time)
+          return producer.produce(topic: topic, payload: record_buf, key: message_key, partition: partition, timestamp: time_ms)
         rescue Exception => e
           if e.code == :queue_full
             if attempt <= @max_enqueue_retries
